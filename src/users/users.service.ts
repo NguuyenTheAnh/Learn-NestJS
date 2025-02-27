@@ -30,8 +30,14 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      // let user = await this.userModel.findById(id);
+      let user = await this.userModel.findOne({ _id: id });
+      return user;
+    } catch (error) {
+      return "Not found user";
+    };
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
