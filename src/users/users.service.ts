@@ -40,11 +40,16 @@ export class UsersService {
     };
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      let result = await this.userModel.updateOne({ _id: id }, updateUserDto);
+      return result;
+    } catch (error) {
+      return "Update fail";
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    return await this.userModel.deleteOne({ _id: id });
   }
 }
