@@ -1,21 +1,20 @@
-import { Controller, Get, Render } from '@nestjs/common';
+import { Controller, Get, Post, Render, Request, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
+import { LocalAuthGuard } from './auth/local-auth.guard';
+import { AuthService } from './auth/auth.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private authService: AuthService
   ) { }
 
-  @Get()
-  @Render('home')
-  getHello() {
-    const message1 = this.appService.getHello();
-    console.log(">>> check port: ", this.configService.get<string>('PORT'));
-    return {
-      message: message1
-    }
+  @Post('login')
+  @UseGuards(LocalAuthGuard)
+  handleLogin(@Request() req: any) {
+    return this.authService.login(req.user);
   }
 }
