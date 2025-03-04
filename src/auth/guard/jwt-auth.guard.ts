@@ -30,7 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     handleRequest(err: any, user: any, info: any) {
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
-            throw err || new UnauthorizedException("Token is expired");
+            throw err || new UnauthorizedException("Token is expired or don't have token in header");
         }
         return user;
     }
