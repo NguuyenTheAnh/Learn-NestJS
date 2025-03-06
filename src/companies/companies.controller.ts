@@ -17,8 +17,8 @@ export class CompaniesController {
   @Get()
   @ResponseMessage('Fetch list company with paginate')
   findAll(
-    @Query('page') currentPage: string,
-    @Query('limit') limit: string,
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
     @Query() queryString: string,
   ) {
     return this.companiesService.findAll(+currentPage, +limit, queryString);
@@ -30,7 +30,11 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto, @User() user: IUser) {
+  update(
+    @Body() updateCompanyDto: UpdateCompanyDto,
+    @User() user: IUser,
+    @Param('id') id: string
+  ) {
     return this.companiesService.update(id, updateCompanyDto, user);
   }
 
