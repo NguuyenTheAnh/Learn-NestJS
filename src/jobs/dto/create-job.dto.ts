@@ -1,5 +1,5 @@
-import { Type } from "class-transformer";
-import { IsNotEmpty, IsNotEmptyObject, IsObject, ValidateNested } from "class-validator"
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsDate, IsNotEmpty, IsNotEmptyObject, IsObject, ValidateNested } from "class-validator"
 import mongoose from "mongoose";
 
 class Company {
@@ -8,6 +8,9 @@ class Company {
 
     @IsNotEmpty()
     name: string;
+
+    @IsNotEmpty()
+    logo: string;
 }
 
 export class CreateJobDto {
@@ -35,10 +38,20 @@ export class CreateJobDto {
     @IsNotEmpty({ message: `Description can't be emptied` })
     description: string
 
-    @IsNotEmpty({ message: `Start date can't be emptied` })
-    startDate: Date
+    @IsNotEmpty({ message: `Location can't be emptied` })
+    location: string
 
-    @IsNotEmpty({ message: `End date can't be emptied` })
-    endDate: Date
+    @IsNotEmpty({ message: `startDate can't be emptied` })
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'startDate should have Date type' })
+    startDate: Date;
 
+    @IsNotEmpty({ message: `endDate can't be emptied` })
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'endDate should have Date type' })
+    endDate: Date;
+
+    @IsNotEmpty({ message: `isActive can't be emptied` })
+    @IsBoolean({ message: 'isActive should have boolean type' })
+    isActive: boolean
 }
