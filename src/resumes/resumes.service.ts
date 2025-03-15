@@ -113,6 +113,17 @@ export class ResumesService {
   }
 
   async getCVByUserService(user: IUser) {
-    return await this.resumeModel.find({ userId: user._id });
+    return await this.resumeModel.find({ userId: user._id })
+      .sort('-createdAt')
+      .populate([
+        {
+          path: 'companyId',
+          select: 'name'
+        },
+        {
+          path: 'jobId',
+          select: 'name'
+        }
+      ]);
   }
 }

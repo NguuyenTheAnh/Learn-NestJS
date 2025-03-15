@@ -74,13 +74,14 @@ export class UsersService {
   }
 
   async findOneById(id: string) {
-    let user = await this.userModel.findOne({ _id: id });
-    delete user.password;
+    let user = await this.userModel.findOne({ _id: id })
+      .select("-password")
+      .populate({ path: "role", select: ['_id', 'name'] });
     return user;
   }
 
   async findOneByEmail(email: string) {
-    return await this.userModel.findOne({ email });
+    return await this.userModel.findOne({ email }).populate({ path: "role", select: { name: 1, permissions: 1 } });
   }
 
   isValidPassword(password: string, hash: string) {
@@ -101,6 +102,10 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
+    const foundUser = await this.userModel.findById(id);
+    if (foundUser.email === "admin@gmail.com") {
+      throw new BadRequestException("admin@gmail.com account can not be deleted");
+    }
     await this.userModel.updateOne({ _id: id }, {
       deletedBy: {
         _id: user._id,

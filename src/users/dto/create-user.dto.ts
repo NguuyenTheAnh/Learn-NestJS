@@ -34,7 +34,7 @@ export class CreateUserDto {
     address: string;
 
     @IsNotEmpty({ message: 'Role can not be emptied', })
-    role: string;
+    role: mongoose.Schema.Types.ObjectId;
 
     @IsNotEmptyObject()
     @IsObject()
