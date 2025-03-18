@@ -6,6 +6,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Role, RoleDocument } from './schemas/role.schema';
 import aqp from 'api-query-params';
 import { IUser } from 'src/interface/users.interface';
+import { ADMIN_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class RolesService {
@@ -16,7 +17,9 @@ export class RolesService {
   ) { }
 
   async create(createRoleDto: CreateRoleDto, user: IUser) {
-    const isExistedName = await this.roleModel.findOne({ name: createRoleDto.name });
+    const isExistedName = await this.roleModel.findOne({ name: createRoleDto.name, isDeleted: false });
+    console.log(createRoleDto.name, isExistedName);
+
     if (isExistedName)
       throw new BadRequestException('Role name existed');
     return await this.roleModel.create({
@@ -57,7 +60,7 @@ export class RolesService {
   }
 
   async findOne(id: string) {
-    return (await this.roleModel.findOne({ _id: id })).populate({
+    return await this.roleModel.findOne({ _id: id }).populate({
       path: 'permissions',
       select: ['_id', 'name', 'apiPath', 'method', 'module']
     }
@@ -78,7 +81,7 @@ export class RolesService {
 
   async remove(id: string, user: IUser) {
     const foundRole = await this.roleModel.findById(id);
-    if (foundRole.name === "ADMIN") {
+    if (foundRole.name === ADMIN_ROLE) {
       throw new BadRequestException("Role ADMIN can not be deleted");
     }
     await this.roleModel.updateOne(

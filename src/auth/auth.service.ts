@@ -6,6 +6,7 @@ import { Response } from 'express';
 import ms from 'ms';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/interface/users.interface';
+import { RolesService } from 'src/roles/roles.service';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/users.service';
@@ -16,7 +17,8 @@ export class AuthService {
         private usersService: UsersService,
         private jwtService: JwtService,
         @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private rolesService: RolesService
 
     ) { }
 
@@ -24,13 +26,23 @@ export class AuthService {
         const user = await this.usersService.findOneByEmail(username);
         if (user) {
             const isValid = this.usersService.isValidPassword(pass, user.password);
-            if (isValid) return user;
+            if (isValid) {
+                const userRole = user.role as unknown as { _id: string; name: string }
+                const temp = await this.rolesService.findOne(userRole._id);
+
+                const objUser = {
+                    ...user.toObject(),
+                    permissions: temp?.permissions ?? []
+                }
+
+                return objUser;
+            };
         }
         return null;
     }
 
     async login(user: IUser, response: Response) {
-        const { _id, name, email, role } = user;
+        const { _id, name, email, role, permissions } = user;
         const payload = {
             sub: "token login",
             iss: "from server",
@@ -56,7 +68,8 @@ export class AuthService {
                 _id,
                 name,
                 email,
-                role
+                role,
+                permissions
             }
         };
     }
@@ -104,6 +117,10 @@ export class AuthService {
                 // update user token with refresh token
                 await this.usersService.updateUserToken(refresh_token, _id.toString());
 
+                //fetch user's role
+                const userRole = user.role as unknown as { _id: string; name: string }
+                const temp = await this.rolesService.findOne(userRole._id)
+
                 // set cookie
                 response.clearCookie('refresh_token');
                 response.cookie('refresh_token', refresh_token, {
@@ -117,7 +134,8 @@ export class AuthService {
                         _id,
                         name,
                         email,
-                        role
+                        role,
+                        permissions: temp?.permissions ?? []
                     }
                 };
             }

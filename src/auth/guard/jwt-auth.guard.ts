@@ -1,11 +1,12 @@
-
 import {
     ExecutionContext,
+    ForbiddenException,
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { IS_PUBLIC_KEY } from 'src/decorator/customize';
 
 @Injectable()
@@ -27,10 +28,26 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
 
-    handleRequest(err: any, user: any, info: any) {
+    handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
+        // get request's method, path
+        const request: Request = context.switchToHttp().getRequest();
+        const targetMethod = request.method;
+        const targetPath = request.path;
+
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
             throw err || new UnauthorizedException("Token is expired or don't have token in header");
+        }
+
+        // check permissions
+        const permissions = user?.permissions ?? [];
+        const enablePermission = permissions.find(permission =>
+            permission.apiPath === targetPath
+            &&
+            permission.method === targetMethod
+        )
+        if (!enablePermission) {
+            throw new ForbiddenException('You do not have permission to access this page');
         }
         return user;
     }

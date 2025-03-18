@@ -7,12 +7,18 @@ import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/interface/users.interface';
 import aqp from 'api-query-params';
+import { USER_ROLE } from 'src/databases/sample';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
+
     @InjectModel(User.name)
-    private userModel: SoftDeleteModel<UserDocument>
+    private userModel: SoftDeleteModel<UserDocument>,
+
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>
   ) { }
 
   getHashPassword = (password: string) => {
@@ -25,11 +31,14 @@ export class UsersService {
     // check email exist
     const isExist = await this.userModel.findOne({ email: createUserDto.email });
     if (isExist) throw new BadRequestException('Email exists');
+    //fetch user role
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE });
 
     const hashPassword = this.getHashPassword(createUserDto.password);
     let newUser = await this.userModel.create({
       ...createUserDto,
       password: hashPassword,
+      role: userRole?._id,
       createdBy: {
         _id: user._id,
         email: user.email
@@ -81,7 +90,7 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string) {
-    return await this.userModel.findOne({ email }).populate({ path: "role", select: { name: 1, permissions: 1 } });
+    return await this.userModel.findOne({ email }).populate({ path: "role", select: 'name' });
   }
 
   isValidPassword(password: string, hash: string) {
@@ -120,6 +129,6 @@ export class UsersService {
   }
 
   async findUserByToken(refreshToken: string) {
-    return await this.userModel.findOne({ refreshToken });
+    return await this.userModel.findOne({ refreshToken }).populate({ path: "role", select: 'name' });
   }
 }
