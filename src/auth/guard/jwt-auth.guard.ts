@@ -32,7 +32,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // get request's method, path
         const request: Request = context.switchToHttp().getRequest();
         const targetMethod = request.method;
-        const targetPath = request.path;
+        const targetPath = request.path as string;
 
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
@@ -41,11 +41,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
         // check permissions
         const permissions = user?.permissions ?? [];
-        const enablePermission = permissions.find(permission =>
+        let enablePermission = permissions.find(permission =>
             permission.apiPath === targetPath
             &&
             permission.method === targetMethod
         )
+        if (targetPath.startsWith('/api/v1/auth')) enablePermission = true;
         if (!enablePermission) {
             throw new ForbiddenException('You do not have permission to access this page');
         }
