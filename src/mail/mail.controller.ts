@@ -7,7 +7,10 @@ import { Job, JobDocument } from 'src/jobs/schemas/job.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Subscriber } from 'rxjs';
 import { SubscriberDocument } from 'src/subscribers/schemas/subscriber.schema';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('mail')
 @Controller('mail')
 export class MailController {
   constructor(
@@ -24,8 +27,8 @@ export class MailController {
   @Get()
   @Public()
   @ResponseMessage("Test email")
+  @Cron("0 10 0 * * 0") // 0.10' am every sunday
   async handleTestEmail() {
-
     const subscribers = await this.subscriberModel.find({});
     for (const subs of subscribers) {
       const subsSkills = subs.skills;
