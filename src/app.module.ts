@@ -21,8 +21,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     ThrottlerModule.forRoot({
-      ttl: 60,
-      limit: 2,
+      throttlers: [
+        {
+          ttl: 60,
+          limit: 10,
+        },
+      ],
     }),
     ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({

@@ -23,7 +23,7 @@ export class AuthController {
     @ApiBody({ type: UserLoginDto, })
     @UseGuards(LocalAuthGuard)
     @UseGuards(ThrottlerGuard)
-    @Throttle(4, 60)
+    @Throttle({ default: { limit: 4, ttl: 60 } })
     handleLogin(
         @Req() req: any,
         @Res({ passthrough: true }) response: Response

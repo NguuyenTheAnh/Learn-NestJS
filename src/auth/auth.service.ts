@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
-import ms from 'ms';
+import ms, { StringValue } from 'ms';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/interface/users.interface';
 import { RolesService } from 'src/roles/roles.service';
@@ -58,7 +58,7 @@ export class AuthService {
 
         // set cookie
         response.cookie('refresh_token', refresh_token, {
-            maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+            maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue),
             httpOnly: true
         })
 
@@ -90,7 +90,7 @@ export class AuthService {
     createRefreshToken(payload: any) {
         const refresh_token = this.jwtService.sign(payload, {
             secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
-            expiresIn: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')) / 1000
+            expiresIn: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue) / 1000
         })
         return refresh_token;
     }
@@ -124,7 +124,7 @@ export class AuthService {
                 // set cookie
                 response.clearCookie('refresh_token');
                 response.cookie('refresh_token', refresh_token, {
-                    maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+                    maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue),
                     httpOnly: true
                 })
 
