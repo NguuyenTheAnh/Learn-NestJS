@@ -11,8 +11,6 @@ import { IUser } from 'src/interface/users.interface';
 @Injectable()
 export class SubscribersService {
   constructor(
-
-
     @InjectModel(Subscriber.name)
     private subscriberModel: SoftDeleteModel<SubscriberDocument>
   ) { }

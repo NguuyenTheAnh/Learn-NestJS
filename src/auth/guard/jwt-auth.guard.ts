@@ -32,7 +32,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // get request's method, path
         const request: Request = context.switchToHttp().getRequest();
         const targetMethod = request.method;
-        const targetPath = request.path as string;
+        const targetPath = request.route?.path as string;
 
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {

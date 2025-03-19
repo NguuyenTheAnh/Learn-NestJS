@@ -5,11 +5,15 @@ import { ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'node:path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Job, JobSchema } from 'src/jobs/schemas/job.schema';
+import { Subscriber, SubscriberSchema } from 'src/subscribers/schemas/subscriber.schema';
 
 @Module({
   imports: [
     MailerModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
+        // transporter assign sender email
         transport: {
           host: configService.get<string>('EMAIL_HOST'),
           secure: false,
@@ -26,10 +30,14 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
             strict: true,
           },
         },
-        preview: true,
+        preview: configService.get<string>('EMAIL_PREVIEW') === 'true' ? true : false,
       }),
       inject: [ConfigService],
     }),
+    MongooseModule.forFeature([
+      { name: Job.name, schema: JobSchema },
+      { name: Subscriber.name, schema: SubscriberSchema }
+    ])
   ],
   controllers: [MailController],
   providers: [MailService]

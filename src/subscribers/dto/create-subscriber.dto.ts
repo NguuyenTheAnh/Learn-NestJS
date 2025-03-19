@@ -14,4 +14,4 @@ export class CreateSubscriberDto {
     @IsString({ each: true, message: "skill định dạng là string" })
     skills: string[];
 
-}
+} 

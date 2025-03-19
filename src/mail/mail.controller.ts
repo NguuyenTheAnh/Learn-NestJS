@@ -2,24 +2,56 @@ import { Controller, Get } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { Public, ResponseMessage } from 'src/decorator/customize';
 import { MailerService } from '@nestjs-modules/mailer';
+import { InjectModel } from '@nestjs/mongoose';
+import { Job, JobDocument } from 'src/jobs/schemas/job.schema';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { Subscriber } from 'rxjs';
+import { SubscriberDocument } from 'src/subscribers/schemas/subscriber.schema';
 
 @Controller('mail')
 export class MailController {
   constructor(
     private readonly mailService: MailService,
-    private mailerService: MailerService
+    private mailerService: MailerService,
+
+    @InjectModel(Job.name)
+    private jobModel: SoftDeleteModel<JobDocument>,
+
+    @InjectModel(Subscriber.name)
+    private subscriberModel: SoftDeleteModel<SubscriberDocument>
   ) { }
 
   @Get()
   @Public()
   @ResponseMessage("Test email")
   async handleTestEmail() {
-    await this.mailerService.sendMail({
-      to: "anhnguyenthe2911@gmail.com",
-      from: '"Support Team" <support@example.com>', // override default from
-      subject: 'Welcome to Nice App! Confirm your Email',
-      template: 'test'
-    });
+
+    const subscribers = await this.subscriberModel.find({});
+    for (const subs of subscribers) {
+      const subsSkills = subs.skills;
+      const jobWithMatchingSkills = await this.jobModel.find({ skills: { $in: subsSkills } });
+      if (jobWithMatchingSkills?.length) {
+        const jobs = jobWithMatchingSkills.map(item => {
+          return {
+            name: item.name,
+            company: item.company.name,
+            salary: `${item.salary}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " đ",
+            skills: item.skills
+          }
+        });
+
+        await this.mailerService.sendMail({
+          to: "anhnguyenthe2911@gmail.com",
+          from: '"Support Team" <support@example.com>', // override default from
+          subject: 'Welcome to Nice App! Confirm your Email',
+          template: 'new-job',
+          context: {
+            receiver: subs.name,
+            jobs: jobs
+          }
+        });
+      }
+    }
   }
 
 }
